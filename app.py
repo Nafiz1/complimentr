@@ -1,10 +1,11 @@
 import os
+import click
 
 from dotenv import load_dotenv
 from flask import (
     Flask,
-    flash, 
-    render_template, 
+    flash,
+    render_template,
     redirect,
     request,
     url_for,
@@ -19,23 +20,28 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
 
 client = Client()
 
+
 def get_sent_messages():
     # TODO: Make this return a collection of messages that were sent from the number
-    messages = []
+    messages = client.messages.list(from_=TWILIO_PHONE_NUMBER, limit=20)
+    for record in messages:
+        print(record.sid)
     return messages
 
+
 def send_message(to, body):
-    # TODO: Send the text message
     client.messages.create(
-      to=to
-      body=body
-      from_=TWILIO_PHONE_NUMBER
+        to=to,
+        body=body,
+        from_=TWILIO_PHONE_NUMBER
     )
+
 
 @app.route("/", methods=["GET"])
 def index():
     messages = get_sent_messages()
     return render_template("index.html", messages=messages)
+
 
 @app.route("/add-compliment", methods=["POST"])
 def add_compliment():
@@ -47,6 +53,7 @@ def add_compliment():
     send_message(to, body)
     flash('Your message was successfully sent')
     return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     app.run()
